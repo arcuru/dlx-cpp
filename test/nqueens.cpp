@@ -37,11 +37,14 @@ int main(int argc, char* argv[])
         N = atoi(argv[1]);
 
     vector<vector<size_t>> definition;
+    definition.reserve(N * N);
 
     // One entry per square
     for (size_t r = 0; r < N; ++r) {
         for (size_t c = 0; c < N; ++c) {
-            vector<size_t> tmp;
+            definition.emplace_back();
+            auto& tmp = definition.back();
+            tmp.reserve(4);
 
             // Row is simply row value
             tmp.push_back(r);
@@ -52,14 +55,12 @@ int main(int argc, char* argv[])
             // Diags are more complicated (and optional)
             tmp.push_back(N + N + (N - 1 ) + r - c);
             tmp.push_back(N + N + N + (N - 1) + c + r);
-
-            definition.push_back(tmp);
         }
     }
 
     DLX tmp(definition, 2 * N);
     DLX_Containers tmp_cont(definition, 2 * N);
-    
+
     cout << "DLX found " << tmp.count_solutions() << " solutions." << endl;
     cout << "DLX_Containers found " << tmp_cont.count_solutions() << " solutions." << endl;
 
