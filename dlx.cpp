@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 
 using std::vector;
 using std::size_t;
@@ -28,8 +29,17 @@ DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
     // Construct the matrix
     matrix = new dlx_node();
     nodes_.emplace_back();
-    nodes_[0].reserve(1000); //TODO: This is a bad hack required
-                             // because pointers can't move
+
+    // Find out how many columns we actually have
+    size_t columns = 0;
+
+    for (auto& v : definition_) {
+        auto x = *std::max_element(v.begin(), v.end());
+        if (x > columns)
+            columns = x;
+    }
+
+    nodes_[0].reserve(columns+1);
 
     for (size_t c = 0; c < nodes_[0].size(); ++c) {
         nodes_[0].emplace_back();
