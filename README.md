@@ -12,9 +12,9 @@ For details of the algorithm see wikipedia or [Donald Knuth's original paper](ht
 This library contains 2 separate implementations of Algorithm X.
 
 1. **DLX** - Defined in dlx.h. A clean implementation of Dancing Links.
-2. **DLX_Containers** - Defined in dlx_containers.h. 
+2. **DLX_Containers** - Defined in dlx_containers.h. Uses stdlib containers to get the same functionality of DLX without any pointers.
 
-Both have identical interfaces, but **DLX** is more efficient at the moment. The advantage of **DLX_Containers** is that it's much easier to read (and it's the only one without a memory leak, see Issue [#1](https://github.com/patricksjackson/dlx-cpp/issues/1)).
+Both have identical interfaces, but **DLX** is 3-4x more efficient at the moment. There is essentially no reason to use DLX_Containers in production, but it can be useful to read through if you'd like to understand the algorithm.
 
 # Examples
 
