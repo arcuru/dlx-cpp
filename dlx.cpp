@@ -9,27 +9,16 @@ using std::cout;
 using std::endl;
 using std::stack;
 
-/**
- * Common node for every entry (and column head) in the matrix
- * It contains extra info for most nodes but makes the code simpler
- */
-struct dlx_node {
-    dlx_node* up;
-    dlx_node* down;
-    dlx_node* left;
-    dlx_node* right;
-    int row;
-    int column;
-    size_t count;
-    dlx_node* head;
-
-    dlx_node()
-        : up(this), down(this),
-        left(this), right(this),
-        row(-1), column(-1), count(0), head(this)
-    {}
-};
-
+// Will want to remove this if possible
+void link_vector(vector<dlx_node>& v)
+{
+    for (size_t i = 0; i < v.size()-1; ++i) {
+        v[i].right = &v[i+1];
+        v[i+1].left = &v[i];
+    }
+    v[0].left = &v.back();
+    v.back().right = &v[0];
+}
 
 DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
     : definition_(definition),
@@ -38,16 +27,51 @@ DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
 {
     // Construct the matrix
     matrix = new dlx_node();
-    for (size_t r = 0; r < definition.size(); ++r)
-        for (size_t c : definition[r])
-            insert_node(r, c);
+    nodes_.emplace_back();
+    nodes_[0].reserve(1000); //TODO: This is a bad hack required
+                             // because pointers can't move
 
-    // Remove the unnecessary row headers
-    dlx_node* tmp = matrix->down;
-    for (auto tmp = matrix->down; tmp != matrix; tmp = tmp->down) {
-        tmp->right->left = tmp->left;
-        tmp->left->right = tmp->right;
+    for (size_t c = 0; c < nodes_[0].size(); ++c) {
+        nodes_[0].emplace_back();
+        nodes_[0][c].column = c;
     }
+
+    for (size_t r = 0; r < definition_.size(); ++r) {
+        nodes_.emplace_back();
+        auto& v = nodes_.back();
+        v.reserve(definition_[r].size());
+
+        for (size_t c : definition_[r]) {
+            v.emplace_back();
+            auto& col_headers = nodes_[0];
+            while (c >= col_headers.size()) {
+                col_headers.emplace_back();
+                col_headers.back().column = nodes_[0].size()-1;
+            }
+            v.back().row = r;
+            v.back().column = c;
+
+            // Insert above column
+            v.back().down    = &col_headers[c];
+            v.back().up      = col_headers[c].up;
+            v.back().down->up = &v.back();
+            v.back().up->down = &v.back();
+            v.back().head    = &col_headers[c];
+
+            ++col_headers[c].count;
+        }
+    }
+    for (auto& v : nodes_)
+        link_vector(v);
+    matrix->right = &nodes_[0].front();
+    matrix->left = &nodes_[0].back();
+    nodes_[0].front().left = matrix;
+    nodes_[0].back().right = matrix;
+}
+
+DLX::~DLX()
+{
+    delete matrix;
 }
 
 /**
@@ -145,7 +169,7 @@ bool DLX::search(bool all)
         // Cover all columns this row is in
         for (auto rp = tmp->right; rp != tmp; rp = rp->right)
             cover_column(rp->head);
-        
+
         // Run recursively
         if (search(all))
             return true;
@@ -207,7 +231,7 @@ void DLX::uncover_column(dlx_node* col_header)
 {
     // Loop 'up' over the column
     for (auto tmp_col = col_header->up; tmp_col != col_header; tmp_col = tmp_col->up) {
-        // Cover this row
+        // Uncover this row
         for (auto rp = tmp_col->right; rp != tmp_col; rp = rp->right) {
             rp->up->down = rp;
             rp->down->up = rp;
@@ -241,67 +265,5 @@ dlx_node* DLX::smallest_column() const
         }
     }
     return smallest_column;
-}
-
-/**
- * Insert a new node into the matrix. Expand the matrix if necessary.
- *
- * @param   row     Row value
- * @param   col     Column value
- */
-void DLX::insert_node(size_t row, size_t col)
-{
-    dlx_node* row_header = matrix->down;
-    while (row_header != matrix) {
-        if (row_header->row == row)
-            break;
-        row_header = row_header->down;
-    }
-    if (row_header == matrix) {
-        // Row doesn't exist. Insert it
-        // Insert above matrix
-        row_header = new dlx_node();
-        row_header->row = row;
-        row_header->down = matrix;
-        row_header->up = matrix->up;
-        row_header->up->down = row_header;
-        matrix->up = row_header;
-    }
-    dlx_node* col_header = matrix->right;
-    while (col_header != matrix) {
-        if (col_header->column == col)
-            break;
-        col_header = col_header->right;
-    }
-    if (col_header == matrix) {
-        // Column doesnt exist. Insert it
-        // Insert left of matrix
-        col_header = new dlx_node();
-        col_header->column = col;
-        col_header->right = matrix;
-        col_header->left = matrix->left;
-        col_header->left->right = col_header;
-        matrix->left = col_header;
-    }
-    // Just stick it above col_header and left of row_header
-    dlx_node* tmp = new dlx_node();
-    tmp->column = col;
-    tmp->row = row;
-    
-    // Left of row_header
-    tmp->right = row_header;
-    tmp->left = row_header->left;
-    tmp->right->left = tmp;
-    tmp->left->right = tmp;
-
-    // Above col_header
-    tmp->down = col_header;
-    tmp->up = col_header->up;
-    tmp->down->up = tmp;
-    tmp->up->down = tmp;
-
-    // Add one to col_header
-    col_header->count++;
-    tmp->head = col_header;
 }
 
