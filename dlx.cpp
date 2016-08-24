@@ -203,11 +203,7 @@ bool DLX::search(bool all)
 bool DLX::is_solved() const
 {
     // Check only for required columns
-    // No guarantee of what order they are in
-    for (auto tmp = matrix->right; tmp != matrix; tmp = tmp->right)
-        if (tmp->column < required_)
-            return false;
-    return true;
+    return matrix->right->column >= required_;
 }
 
 /**
