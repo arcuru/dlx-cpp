@@ -257,7 +257,7 @@ dlx_node* DLX::smallest_column() const
     for (auto col = matrix->right; col != matrix; col = col->right) {
         // Skip non-required columns
         if (col->column >= required_)
-            continue;
+            break;
 
         if (col->count < min_count) {
             min_count = col->count;
