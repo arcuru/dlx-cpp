@@ -1,5 +1,4 @@
 #include "dlx.h"
-#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
@@ -11,7 +10,7 @@ using std::endl;
 using std::stack;
 
 // Will want to remove this if possible
-void link_vector(vector<dlx_node>& v)
+static void link_vector(vector<dlx_node>& v)
 {
     for (size_t i = 0; i < v.size()-1; ++i) {
         v[i].right = &v[i+1];

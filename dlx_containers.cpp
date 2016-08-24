@@ -175,7 +175,7 @@ size_t DLX_Containers::smallest_column() const
     size_t min_count = SIZE_MAX;
     size_t smallest_column = 100;
 
-    for (auto i = 0; i < cols_.size(); ++i) {
+    for (size_t i = 0; i < cols_.size(); ++i) {
         // Skip non-required columns
         if (i >= required_ || cols_[i].covered)
             continue;

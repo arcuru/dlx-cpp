@@ -6,16 +6,9 @@
 
 using namespace std;
 
-void print_vector(vector<size_t> inp, size_t width = 2)
+static void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx)
 {
-    for (auto i : inp)
-        cout << setw(width) << i << ", ";
-    cout << endl;
-}
-
-void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx)
-{
-    int N = idx.size();
+    size_t N = idx.size();
     string line(N, '-');
 
     vector<string> out(N,line);
@@ -32,9 +25,9 @@ void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx)
 int main(int argc, char* argv[])
 {
     // Construct vector of vectors for nqueens problem
-    int N = 8; // Default to 8 queens
+    size_t N = 8; // Default to 8 queens
     if (argc > 1)
-        N = atoi(argv[1]);
+        N = static_cast<size_t>(atoi(argv[1]));
 
     vector<vector<size_t>> definition;
     definition.reserve(N * N);

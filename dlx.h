@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <stack>
+#include <cstdint>
 
 /**
  * Common node for every entry (and column head) in the matrix
@@ -12,17 +13,16 @@ struct dlx_node {
     dlx_node* down;
     dlx_node* left;
     dlx_node* right;
-    int row;
-    int column;
+    std::size_t row;
+    std::size_t column;
     std::size_t count;
     dlx_node* head;
 
     dlx_node()
         : up(this), down(this),
         left(this), right(this),
-        row(-1), column(-1), count(0), head(this)
+        row(SIZE_MAX), column(SIZE_MAX), count(0), head(this)
     {}
-    ~dlx_node() {};
 };
 
 

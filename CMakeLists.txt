@@ -15,9 +15,14 @@ set(proj dlx)
 # Name the project
 project(dlx CXX)
 
+
 # Enable C++14 features on gcc/clang
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(GNU|Clang)")
-    set(CMAKE_CXX_FLAGS "-std=c++14")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Clang)")
+    set(CMAKE_CXX_FLAGS "-Weverything -Wno-c++98-compat -Wno-padded -Werror -std=c++14")
+endif()
+
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(GCC)")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c++14")
 endif()
 
 # Build executable from sources and headers

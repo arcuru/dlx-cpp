@@ -9,8 +9,8 @@ struct row_node {
 };
 
 struct col_node {
-    bool covered = false;
     std::vector<std::size_t> rows;
+    bool covered = false;
 };
 
 class DLX_Containers {
