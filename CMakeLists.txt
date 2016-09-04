@@ -25,8 +25,9 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "(GCC)")
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c++14")
 endif()
 
-# Build executable from sources and headers
-add_executable(nqueens dlx.cpp dlx.h dlx_containers.cpp dlx_containers.h test/nqueens.cpp)
+add_library(dlx dlx.cpp dlx.h)
 
+# Build executable from sources and headers
+add_executable(nqueens dlx dlx_containers.cpp dlx_containers.h test/nqueens.cpp)
 
 
