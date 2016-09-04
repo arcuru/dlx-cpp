@@ -23,6 +23,10 @@ struct dlx_node {
         left(this), right(this),
         row(SIZE_MAX), column(SIZE_MAX), count(0), head(this)
     {}
+
+    dlx_node(std::size_t r, std::size_t c)
+        : dlx_node()
+    { row = r; column = c; }
 };
 
 
@@ -48,6 +52,8 @@ class DLX {
         bool is_solved() const;
         bool search(bool all);
 
+        void build_nodes(std::vector<std::vector<std::size_t>>& def);
+
         void insert_node(std::size_t row, std::size_t col);
 
         void cover_column(dlx_node* col_head);
@@ -63,5 +69,6 @@ class DLX {
         std::size_t solution_count;
 
         std::vector<std::vector<dlx_node>> nodes_;
+        std::vector<dlx_node> col_headers;
 };
 

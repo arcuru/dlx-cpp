@@ -9,9 +9,13 @@ using std::cout;
 using std::endl;
 using std::stack;
 
-// Will want to remove this if possible
-static void link_vector(vector<dlx_node>& v)
+namespace {
+static void link_row(vector<dlx_node>& v)
 {
+    if (v.empty())
+        return;
+
+    // Link along the row
     for (size_t i = 0; i < v.size()-1; ++i) {
         v[i].right = &v[i+1];
         v[i+1].left = &v[i];
@@ -20,62 +24,72 @@ static void link_vector(vector<dlx_node>& v)
     v.back().right = &v[0];
 }
 
+static void link_columns(vector<dlx_node>& v, vector<dlx_node>& col_heads)
+{
+    // Link columns
+    for (auto& x : v) {
+        x.head     = &col_heads[x.column];
+        auto head  = x.head;
+        x.down     = head;
+        x.up       = head->up;
+        x.down->up = &x;
+        x.up->down = &x;
+        ++head->count;
+    }
+}
+} // anonymous namespace
+
+void DLX::build_nodes(vector<vector<size_t>>& def)
+{
+    nodes_.resize(def.size());
+    for (size_t r = 0; r < nodes_.size(); ++r) {
+
+        auto& v = nodes_[r];
+        v.reserve(def[r].size());
+
+        for (size_t c : def[r]) {
+            v.emplace_back(r, c);
+        }
+
+        // Setup the links
+        link_row(v);
+    }
+
+}
+
 DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
     : definition_(definition),
       required_(req_columns),
       solution_count(0)
 {
-    // Construct the matrix
-    matrix = new dlx_node();
-    nodes_.emplace_back();
-
     // Find out how many columns we actually have
     size_t columns = 0;
-
     for (auto& v : definition_) {
         auto x = *std::max_element(v.begin(), v.end());
         if (x > columns)
             columns = x;
     }
 
-    nodes_[0].reserve(columns+1);
+    col_headers.resize(columns + 1);
 
-    for (size_t c = 0; c < nodes_[0].size(); ++c) {
-        nodes_[0].emplace_back();
-        nodes_[0][c].column = c;
+    for (size_t c = 0; c < col_headers.size(); ++c) {
+        col_headers[c].column = c;
     }
+    link_row(col_headers);
 
-    for (size_t r = 0; r < definition_.size(); ++r) {
-        nodes_.emplace_back();
-        auto& v = nodes_.back();
-        v.reserve(definition_[r].size());
+    // Create all the nodes from the given input
+    build_nodes(definition);
 
-        for (size_t c : definition_[r]) {
-            v.emplace_back();
-            auto& col_headers = nodes_[0];
-            while (c >= col_headers.size()) {
-                col_headers.emplace_back();
-                col_headers.back().column = nodes_[0].size()-1;
-            }
-            v.back().row = r;
-            v.back().column = c;
-
-            // Insert above column
-            v.back().down    = &col_headers[c];
-            v.back().up      = col_headers[c].up;
-            v.back().down->up = &v.back();
-            v.back().up->down = &v.back();
-            v.back().head    = &col_headers[c];
-
-            ++col_headers[c].count;
-        }
-    }
     for (auto& v : nodes_)
-        link_vector(v);
-    matrix->right = &nodes_[0].front();
-    matrix->left = &nodes_[0].back();
-    nodes_[0].front().left = matrix;
-    nodes_[0].back().right = matrix;
+        link_columns(v, col_headers);
+
+    // Construct the matrix
+    matrix = new dlx_node();
+
+    matrix->right = &col_headers.front();
+    matrix->left = &col_headers.back();
+    col_headers.front().left = matrix;
+    col_headers.back().right = matrix;
 }
 
 DLX::~DLX()
