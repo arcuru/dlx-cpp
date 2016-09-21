@@ -1,4 +1,3 @@
-#include "dlx_containers.h"
 #include "dlx.h"
 #include <iostream>
 #include <iomanip>
@@ -52,10 +51,7 @@ int main(int argc, char* argv[])
     }
 
     DLX tmp(definition, 2 * N);
-    DLX_Containers tmp_cont(definition, 2 * N);
-
     cout << "DLX found " << tmp.count_solutions() << " solutions." << endl;
-    cout << "DLX_Containers found " << tmp_cont.count_solutions() << " solutions." << endl;
 
     cout << "First solution found by DLX:" << endl;
     print_nqueens(definition, tmp.find_solution());

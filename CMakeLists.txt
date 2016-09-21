@@ -1,6 +1,9 @@
 # Basic CMake project
 cmake_minimum_required(VERSION 2.8.2)
 
+# Output compilation database for clangtidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # Set default build type to Release
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to Release.")
@@ -10,8 +13,6 @@ endif()
 # Include the current directory in every build
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
  
-set(proj dlx)
-
 # Name the project
 project(dlx CXX)
 
@@ -28,6 +29,6 @@ endif()
 add_library(dlx dlx.cpp dlx.h)
 
 # Build executable from sources and headers
-add_executable(nqueens dlx dlx_containers.cpp dlx_containers.h test/nqueens.cpp)
+add_executable(nqueens dlx test/nqueens.cpp)
 
 
