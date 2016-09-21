@@ -1,16 +1,15 @@
 #include "dlx.h"
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <string>
 
 using namespace std;
 
-static void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx)
-{
+static void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx) {
     size_t N = idx.size();
     string line(N, '-');
 
-    vector<string> out(N,line);
+    vector<string> out(N, line);
 
     for (auto i : idx) {
         // def[i][0]   == row
@@ -21,8 +20,7 @@ static void print_nqueens(vector<vector<size_t>> def, vector<size_t> idx)
         cout << str << endl;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     // Construct vector of vectors for nqueens problem
     size_t N = 8; // Default to 8 queens
     if (argc > 1)
@@ -35,7 +33,7 @@ int main(int argc, char* argv[])
     for (size_t r = 0; r < N; ++r) {
         for (size_t c = 0; c < N; ++c) {
             definition.emplace_back();
-            auto& tmp = definition.back();
+            auto &tmp = definition.back();
             tmp.reserve(4);
 
             // Row is simply row value
@@ -45,7 +43,7 @@ int main(int argc, char* argv[])
             tmp.push_back(N + c);
 
             // Diags are more complicated (and optional)
-            tmp.push_back(N + N + (N - 1 ) + r - c);
+            tmp.push_back(N + N + (N - 1) + r - c);
             tmp.push_back(N + N + N + (N - 1) + c + r);
         }
     }

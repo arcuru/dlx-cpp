@@ -1,7 +1,7 @@
 #include "dlx.h"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
-#include <algorithm>
 
 using std::vector;
 using std::size_t;
@@ -10,28 +10,26 @@ using std::endl;
 using std::stack;
 
 namespace {
-static void link_row(vector<dlx_node>& v)
-{
+static void link_row(vector<dlx_node> &v) {
     if (v.empty())
         return;
 
     // Link along the row
-    for (size_t i = 0; i < v.size()-1; ++i) {
-        v[i].right = &v[i+1];
-        v[i+1].left = &v[i];
+    for (size_t i = 0; i < v.size() - 1; ++i) {
+        v[i].right = &v[i + 1];
+        v[i + 1].left = &v[i];
     }
     v[0].left = &v.back();
     v.back().right = &v[0];
 }
 
-static void link_columns(vector<dlx_node>& v, vector<dlx_node>& col_heads)
-{
+static void link_columns(vector<dlx_node> &v, vector<dlx_node> &col_heads) {
     // Link columns
-    for (auto& x : v) {
-        x.head     = &col_heads[x.column];
-        auto head  = x.head;
-        x.down     = head;
-        x.up       = head->up;
+    for (auto &x : v) {
+        x.head = &col_heads[x.column];
+        auto head = x.head;
+        x.down = head;
+        x.up = head->up;
         x.down->up = &x;
         x.up->down = &x;
         ++head->count;
@@ -39,12 +37,11 @@ static void link_columns(vector<dlx_node>& v, vector<dlx_node>& col_heads)
 }
 } // anonymous namespace
 
-void DLX::build_nodes(vector<vector<size_t>>& def)
-{
+void DLX::build_nodes(vector<vector<size_t>> &def) {
     nodes_.resize(def.size());
     for (size_t r = 0; r < nodes_.size(); ++r) {
 
-        auto& v = nodes_[r];
+        auto &v = nodes_[r];
         v.reserve(def[r].size());
 
         for (size_t c : def[r]) {
@@ -54,17 +51,13 @@ void DLX::build_nodes(vector<vector<size_t>>& def)
         // Setup the links
         link_row(v);
     }
-
 }
 
 DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
-    : definition_(definition),
-      required_(req_columns),
-      solution_count(0)
-{
+    : definition_(definition), required_(req_columns), solution_count(0) {
     // Find out how many columns we actually have
     size_t columns = 0;
-    for (auto& v : definition_) {
+    for (auto &v : definition_) {
         auto x = *std::max_element(v.begin(), v.end());
         if (x > columns)
             columns = x;
@@ -80,7 +73,7 @@ DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
     // Create all the nodes from the given input
     build_nodes(definition);
 
-    for (auto& v : nodes_)
+    for (auto &v : nodes_)
         link_columns(v, col_headers);
 
     // Construct the matrix
@@ -92,10 +85,7 @@ DLX::DLX(vector<vector<size_t>> definition, size_t req_columns)
     col_headers.back().right = matrix;
 }
 
-DLX::~DLX()
-{
-    delete matrix;
-}
+DLX::~DLX() { delete matrix; }
 
 /**
  * Specify a row that must be included in the solution.
@@ -103,13 +93,12 @@ DLX::~DLX()
  *
  * @param   row     Row ID to include
  */
-void DLX::require_row(size_t row)
-{
+void DLX::require_row(size_t row) {
     if (row > definition_.size())
         throw std::invalid_argument("Must provide valid row ID.");
 
     // Get a pointer to a place in the row
-    dlx_node* ptr = matrix->right;
+    dlx_node *ptr = matrix->right;
     auto column = definition_[row][0];
     while (ptr->column != column && ptr != matrix)
         ptr = ptr->right;
@@ -140,8 +129,7 @@ void DLX::require_row(size_t row)
  *
  * @return  Vector of indices indication the first solution
  */
-vector<size_t> DLX::find_solution()
-{
+vector<size_t> DLX::find_solution() {
     search(true);
 
     stack<size_t> tmp(solutions);
@@ -159,8 +147,7 @@ vector<size_t> DLX::find_solution()
  *
  * @return  Number of possible solutions
  */
-size_t DLX::count_solutions()
-{
+size_t DLX::count_solutions() {
     search(false);
 
     return solution_count;
@@ -172,8 +159,7 @@ size_t DLX::count_solutions()
  * @param   all     Setting for finding all solutions or only one
  * @return  True if solution has been found
  */
-bool DLX::search(bool all)
-{
+bool DLX::search(bool all) {
     if (is_solved()) {
         solution_count++;
         return all;
@@ -213,8 +199,7 @@ bool DLX::search(bool all)
  *
  * @return  True if solution has been found
  */
-bool DLX::is_solved() const
-{
+bool DLX::is_solved() const {
     // Check only for required columns
     return matrix->right->column >= required_;
 }
@@ -224,14 +209,14 @@ bool DLX::is_solved() const
  *
  * @param   col_header  Pointer to column head
  */
-void DLX::cover_column(dlx_node* col_header)
-{
+void DLX::cover_column(dlx_node *col_header) {
     // Cover header first
     col_header->right->left = col_header->left;
     col_header->left->right = col_header->right;
 
     // Go down and right for cover
-    for (auto tmp_col = col_header->down; tmp_col != col_header; tmp_col = tmp_col->down) {
+    for (auto tmp_col = col_header->down; tmp_col != col_header;
+         tmp_col = tmp_col->down) {
         // Cover this row
         for (auto rp = tmp_col->right; rp != tmp_col; rp = rp->right) {
             rp->up->down = rp->down;
@@ -246,10 +231,10 @@ void DLX::cover_column(dlx_node* col_header)
  *
  * @param   col_header  Pointer to column head
  */
-void DLX::uncover_column(dlx_node* col_header)
-{
+void DLX::uncover_column(dlx_node *col_header) {
     // Loop 'up' over the column
-    for (auto tmp_col = col_header->up; tmp_col != col_header; tmp_col = tmp_col->up) {
+    for (auto tmp_col = col_header->up; tmp_col != col_header;
+         tmp_col = tmp_col->up) {
         // Uncover this row
         for (auto rp = tmp_col->right; rp != tmp_col; rp = rp->right) {
             rp->up->down = rp;
@@ -268,10 +253,9 @@ void DLX::uncover_column(dlx_node* col_header)
  *
  * @return  Pointer to head of smallest column
  */
-dlx_node* DLX::smallest_column() const
-{
+dlx_node *DLX::smallest_column() const {
     size_t min_count = SIZE_MAX;
-    dlx_node* smallest_column = nullptr;
+    dlx_node *smallest_column = nullptr;
 
     for (auto col = matrix->right; col != matrix; col = col->right) {
         // Skip non-required columns
@@ -285,4 +269,3 @@ dlx_node* DLX::smallest_column() const
     }
     return smallest_column;
 }
-
